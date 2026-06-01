@@ -1,0 +1,101 @@
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Friday Night Funkin vs Huggy Wuggy v2.1</title>
+	<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+		#wrap { position: relative; width: 100%; height: 100%; overflow: hidden; }
+		iframe { position: absolute; border: none; }
+	</style>
+	<script>
+var VX_EQ_GAINS=[3,5,3,1,2,3,2,3,4,2];
+var VX_VOL=1.15;
+(function(){
+  var FREQ=[31,63,125,250,500,1000,2000,4000,8000,16000];
+  var OAC=window.AudioContext||window.webkitAudioContext;
+  var ctxs=[];
+  function PAC(o){
+    var ctx=o?new OAC(o):new OAC();
+    var mg=ctx.createGain();mg.gain.value=VX_VOL;
+    var fl=FREQ.map(function(f,i){
+      var n=ctx.createBiquadFilter();n.type="peaking";
+      n.frequency.value=f;n.Q.value=1.4;n.gain.value=VX_EQ_GAINS[i]||0;return n;
+    });
+    for(var i=0;i<fl.length-1;i++)fl[i].connect(fl[i+1]);
+    fl[fl.length-1].connect(mg);mg.connect(ctx.destination);
+    Object.defineProperty(ctx,"destination",{get:function(){return fl[0];}});
+    ctxs.push(ctx);window.__vxCtx=ctxs;return ctx;
+  }
+  PAC.prototype=OAC.prototype;
+  window.AudioContext=PAC;
+  if(window.webkitAudioContext)window.webkitAudioContext=PAC;
+})();
+</script>
+	<script>
+		var positionMode = "bottom";
+
+		window.addEventListener("keydown", function(e) {
+			if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+				e.preventDefault();
+			}
+		}, false);
+
+		function resizeGame() {
+			var iframe = document.getElementById("game");
+			var wrap = document.getElementById("wrap");
+			var barH = 29;
+			var gameW = 1280;
+			var gameH = 720 + barH;
+
+			var scaleX = wrap.offsetWidth / gameW;
+			var scaleY = wrap.offsetHeight / gameH;
+			var scale = Math.max(scaleX, scaleY);
+
+			var w = wrap.offsetWidth;
+			var h = gameH * scale;
+			var left = 0;
+			var top = (wrap.offsetHeight - h) / 2;
+
+			if (positionMode === "bottom") {
+				top = top - (barH * scale / 1.7);
+			} else if (positionMode === "top") {
+				top = top + (barH * scale / 1.7);
+			}
+
+			iframe.style.width = w + "px";
+			iframe.style.height = h + "px";
+			iframe.style.left = left + "px";
+			iframe.style.top = top + "px";
+		}
+
+		var scanInterval = setInterval(function() {
+			var iframe = document.getElementById("game");
+			if (!iframe) return;
+			try {
+				var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+				if (iframeDoc) {
+					var targetDiv = iframeDoc.getElementById("playmore");
+					if (targetDiv) { targetDiv.remove(); clearInterval(scanInterval); }
+				}
+			} catch (e) {}
+		}, 100);
+
+		window.addEventListener("load", resizeGame);
+		window.addEventListener("resize", resizeGame);
+	</script>
+</head>
+<body>
+	<div id="wrap">
+		<iframe
+			id="game"
+			src="https://kbhgames.com/game/fnf-vs-huggy-wuggy-redux"
+			allowfullscreen
+			allow="autoplay; fullscreen; gamepad; cross-origin-isolated"
+			scrolling="no">
+		</iframe>
+	</div>
+</body>
+</html>
